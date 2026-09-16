@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Direct Bridge - نظام الرد المباشر</title>
+    <!-- استخدام Tailwind CSS للتصميم السريع -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+
+    <!-- شريط علوي -->
+    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-lg font-bold">لوحة خدمة العملاء (جسر ماسنجر المباشر)</h1>
+        <span class="text-xs bg-blue-500 px-2 py-1 rounded">متصل مباشر (بدون تخزين)</span>
+    </header>
+
+    <!-- محتوى الشاشة -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- قسم الرد الخاص بموقعك -->
+        <div class="w-1/2 bg-white border-l border-gray-200 flex flex-col p-4">
+            <h2 class="text-md font-semibold text-gray-700 mb-3">رسائل العملاء الواردة (تظهر لحظياً)</h2>
+            
+            <!-- صندوق عرض الرسائل الحية -->
+            <div id="live-messages-box" class="flex-1 border border-gray-200 rounded-lg p-3 overflow-y-auto bg-gray-50 space-y-3 mb-4">
+                <div class="text-gray-400 text-center text-sm mt-10">في انتظار وصول الرسائل... تأكد من تسجيل الدخول في الفيسبوك بالجانب الأيسر.</div>
+            </div>
+
+            <!-- خانة كتابة الرد وإرساله -->
+            <div class="flex gap-2">
+                <input type="text" id="reply-input" placeholder="اكتب ردك هنا..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                <button onclick="sendReply()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">إرسال</button>
+            </div>
+        </div>
+
+        <!-- قسم محاكي فيسبوك (Meta Business Suite عبر iframe) -->
+        <div class="w-1/2 bg-gray-200 flex flex-col">
+            <div class="bg-gray-300 px-3 py-1 text-xs text-gray-600 flex justify-between">
+                <span>جلسة Meta Business Suite الخلفية</span>
+                <span class="text-red-500 font-bold">يجب تسجيل الدخول لمرة واحدة</span>
+            </div>
+            <!-- يتم وضع رابط الـ Inbox الخاص بصفحتك على فيسبوك هنا -->
+            <iframe id="fb-iframe" src="https://business.facebook.com/latest/inbox/messenger" class="w-full flex-1 border-none"></iframe>
+        </div>
+
+    </div>
+
+    <!-- ربط ملف الـ JavaScript البرمجي -->
+    <script src="assets/js/bridge.js"></script>
+</body>
+</html>
