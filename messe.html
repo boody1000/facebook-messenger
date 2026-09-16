@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة رسائل مسنجر - فايربيز</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f0f2f5; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        
+        .messenger-app { width: 100%; max-width: 1000px; height: 90vh; background: #fff; display: flex; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        /* القائمة الجانبية للعملاء */
+        .sidebar { width: 350px; border-left: 1px solid #e4e6eb; display: flex; flex-direction: column; background: #fff; }
+        .sidebar-header { padding: 20px; font-size: 20px; font-weight: bold; color: #050505; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center; }
+        .sync-status { font-size: 11px; padding: 3px 8px; border-radius: 10px; background: #d4edda; color: #155724; }
+        .conversations-list { flex: 1; overflow-y: auto; }
+        
+        .conv-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: background 0.2s; }
+        .conv-item:hover, .conv-item.active { background: #f0f2f5; }
+        .conv-avatar { width: 50px; height: 50px; border-radius: 50%; background: #0084ff; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 18px; flex-shrink: 0; }
+        .conv-info { flex: 1; overflow: hidden; }
+        .conv-name { font-size: 15px; font-weight: 600; color: #050505; margin-bottom: 4px; }
+        .conv-last-msg { font-size: 13px; color: #65676b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* نافذة الشات */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #fff; }
+        .chat-header { padding: 12px 20px; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center; gap: 12px; }
+        .chat-header .conv-avatar { width: 40px; height: 40px; font-size: 14px; }
+        .chat-header h3 { font-size: 15px; color: #050505; }
+        
+        .chat-messages-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #fff; }
+        
+        .message-row { display: flex; align-items: flex-end; gap: 8px; }
+        .message-row.client { justify-content: flex-start; }
+        .message-row.support { justify-content: flex-end; }
+
+        .bubble { max-width: 65%; padding: 10px 14px; border-radius: 18px; font-size: 14.5px; line-height: 1.4; word-break: break-word; }
+        .message-row.client .bubble { background-color: #f0f2f5; color: #050505; border-bottom-left-radius: 4px; }
+        .message-row.support .bubble { background-color: #0084ff; color: #fff; border-bottom-right-radius: 4px; }
+        
+        .timestamp { font-size: 10px; color: #999; margin-top: 2px; text-align: left; }
+
+        .chat-footer { padding: 15px 20px; border-top: 1px solid #e4e6eb; display: flex; align-items: center; gap: 12px; }
+        .chat-footer input { flex: 1; padding: 10px 16px; background: #f0f2f5; border: none; border-radius: 20px; outline: none; font-size: 14px; }
+        .chat-footer button { background: #0084ff; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    </style>
+
+    <!-- تضمين مكتبة Firebase (الإصدار التوافقي v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<div class="messenger-app">
+    <!-- القائمة الجانبية -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>المحادثات</span>
+            <span id="syncStatus" class="sync-status">متصل فوري</span>
+        </div>
+        <div class="conversations-list" id="conversationsList">
+            <p style="text-align: center; color: #777; margin-top: 20px;">جاري تحميل المحادثات...</p>
+        </div>
+    </div>
+
+    <!-- نافذة الشات -->
+    <div class="chat-area">
+        <div class="chat-header">
+            <div class="conv-avatar" id="activeAvatar">ع</div>
+            <div>
+                <h3 id="activeChatName">اختر محادثة</h3>
+                <span style="font-size: 12px; color: #31a24c;">نشط الآن</span>
+            </div>
+        </div>
+
+        <div class="chat-messages-body" id="chatMessagesBody">
+            <p style="text-align: center; color: #aaa; margin-top: auto; margin-bottom: auto;">الرجاء اختيار عميل لعرض المحادثة</p>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="replyInput" placeholder="اكتب ردك هنا..." onkeypress="checkEnter(event)">
+            <button onclick="sendReply()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // إعدادات Firebase الخاصة بك المدمجة بدقة
+    const firebaseConfig = {
+        apiKey: "AIzaSyD4iEHiucQPltx4hf_i03sv8NwJPeyisOQ",
+        authDomain: "messeng-54eba.firebaseapp.com",
+        databaseURL: "https://messeng-54eba-default-rtdb.firebaseio.com",
+        projectId: "messeng-54eba",
+        storageBucket: "messeng-54eba.firebasestorage.app",
+        messagingSenderId: "556434854739",
+        appId: "1:556434854739:web:5fc3e479d8c42222d287a6",
+        measurementId: "G-FVH4ZFFM6K"
+    };
+
+    // تهيئة Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    let activeClientId = null;
+    let allConversationsData = {};
+
+    // الاستماع الفوري للرسائل عبر Firebase (تحديث لحظي بدون استعلامات متكررة)
+    function listenToFirebaseMessages() {
+        const messagesRef = database.ref('messages');
+        
+        messagesRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                document.getElementById('conversationsList').innerHTML = '<p style="text-align: center; color: #777; margin-top: 20px;">لا توجد رسائل مسجلة بعد</p>';
+                return;
+            }
+
+            allConversationsData = data;
+            renderSidebar(data);
+        }, (error) => {
+            console.error("خطأ في جلب البيانات:", error);
+            document.getElementById('syncStatus').innerText = "خطأ بالاتصال";
+            document.getElementById('syncStatus').style.background = "#f8d7da";
+        });
+    }
+
+    // بناء القائمة الجانبية للعملاء
+    function renderSidebar(data) {
+        const listContainer = document.getElementById('conversationsList');
+        listContainer.innerHTML = '';
+
+        let firstKey = null;
+
+        for (let clientId in data) {
+            if (!firstKey) firstKey = clientId;
+
+            let clientMessages = data[clientId];
+            let msgsArray = Object.values(clientMessages);
+            let lastMsg = msgsArray[msgsArray.length - 1];
+            let clientName = lastMsg.sender_name || 'عميل مسنجر';
+
+            const item = document.createElement('div');
+            item.classList.add('conv-item');
+            if (clientId === activeClientId || (!activeClientId && clientId === firstKey)) {
+                item.classList.add('active');
+                selectClient(clientId, clientName, clientMessages);
+            }
+
+            item.onclick = () => {
+                document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                selectClient(clientId, clientName, clientMessages);
+            };
+
+            item.innerHTML = `
+                <div class="conv-avatar">${clientName.charAt(0)}</div>
+                <div class="conv-info">
+                    <div class="conv-name">${clientName}</div>
+                    <div class="conv-last-msg">${lastMsg.message_text || 'مرفق'}</div>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        }
+    }
+
+    // عرض شات العميل المحدد
+    function selectClient(clientId, clientName, clientMessages) {
+        activeClientId = clientId;
+        document.getElementById('activeChatName').innerText = clientName;
+        document.getElementById('activeAvatar').innerText = clientName.charAt(0);
+
+        const body = document.getElementById('chatMessagesBody');
+        body.innerHTML = '';
+
+        let msgsArray = Object.values(clientMessages);
+        msgsArray.forEach(msg => {
+            const row = document.createElement('div');
+            let senderType = (msg.sender_type === 'support') ? 'support' : 'client';
+            row.classList.add('message-row', senderType);
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.innerHTML = `
+                <div>${msg.message_text}</div>
+                <div class="timestamp">${msg.created_time || ''}</div>
+            `;
+            row.appendChild(bubble);
+            body.appendChild(row);
+        });
+
+        body.scrollTop = body.scrollHeight;
+    }
+
+    // إرسال رد جديد وحفظه مباشرة في Firebase
+    function sendReply() {
+        const input = document.getElementById('replyInput');
+        const text = input.value.trim();
+        if (!text || !activeClientId) return;
+
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const newMsgData = {
+            message_text: text,
+            sender_type: 'support',
+            sender_name: 'الدعم الفني',
+            created_time: timeString
+        };
+
+        database.ref('messages/' + activeClientId).push(newMsgData)
+            .then(() => {
+                input.value = '';
+            })
+            .catch((error) => {
+                alert('فشل الإرسال: ' + error.message);
+            });
+    }
+
+    function checkEnter(e) {
+        if (e.key === 'Enter') sendReply();
+    }
+
+    // بدء الاستماع الفوري عند فتح الصفحة
+    listenToFirebaseMessages();
+</script>
+
+</body>
+</html>
