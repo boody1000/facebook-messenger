@@ -3,46 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة السنترال الافتراضي</title>
-    <link rel="stylesheet" href="style.css">
+    <title>لوحة خدمة العملاء - السنترال الافتراضي</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; }
+        .dashboard-container { display: flex; height: 100vh; }
+        .sidebar { width: 280px; background: #2c3e50; color: white; padding: 20px; }
+        .sidebar h2 { margin-bottom: 20px; font-size: 1.2rem; }
+        .agent-status select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: none; }
+        .virtual-number h3 { color: #2ecc71; margin-top: 5px; }
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .calls-queue { margin-top: 20px; }
+        .call-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid #e74c3c; }
+        .btn-answer { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-answer:hover { background: #219653; }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- الشريط الجانبي للحالة -->
+        <!-- الشريط الجانبي -->
         <aside class="sidebar">
             <h2>لوحة الموظف</h2>
             <div class="agent-status">
                 <label>حالتك الآن:</label>
                 <select id="statusSelect" onchange="updateAgentStatus()">
                     <option value="online">متصل (جاهز)</option>
-                    <option value="busy">مشغول في مكالمة</option>
+                    <option value="busy">مشغول</option>
                     <option value="offline">غير متصل</option>
                 </select>
             </div>
+            <br>
             <div class="virtual-number">
-                <span>رقم الخدمة:</span>
-                <h3>+20 123 456 7890</h3>
+                <span>رقم الخدمة الافتراضي:</span>
+                <h3>+20 (متصل عبر Twilio)</h3>
             </div>
         </aside>
 
-        <!-- المحتوى الرئيسي للمكالمات والطلبات -->
+        <!-- المحتوى الرئيسي -->
         <main class="main-content">
             <header>
-                <h2>قائمة العملاء المنتظرين</h2>
+                <h2>المكالمات الواردة في الانتظار</h2>
             </header>
-            
             <div class="calls-queue" id="callsQueue">
-                <!-- يتم جلب العملاء هنا ديناميكياً من جافاسكريبت -->
-                <div class="call-card">
-                    <p><strong>اسم العميل:</strong> أحمد محمد</p>
-                    <p><strong>رقم الهاتف:</strong> 01012345678</p>
-                    <button class="btn-answer" onclick="answerCall('1')">استقبال المكالمة</button>
-                </div>
+                <p>جاري تحميل المكالمات...</p>
             </div>
         </main>
     </div>
 
-    <!-- ربط Firebase SDK -->
-    <script type="module" src="app.js"></script>
+    <!-- كود المنطق والربط بـ Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ضع إعدادات مشروعك الحقيقية من لوحة تحكم Firebase هنا
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // تحديث حالة الموظف
+        window.updateAgentStatus = function() {
+            const status = document.getElementById('statusSelect').value;
+            set(ref(db, 'agents/agent_1'), { status: status, lastUpdated: Date.now() });
+        }
+
+        // الاستماع للمكالمات الواردة لحظياً
+        const queueRef = ref(db, 'calls_queue/');
+        onValue(queueRef, (snapshot) => {
+            const data = snapshot.val();
+            const queueContainer = document.getElementById('callsQueue');
+            queueContainer.innerHTML = '';
+
+            if (data) {
+                let hasWaitingCalls = false;
+                Object.keys(data).forEach(callId => {
+                    const call = data[callId];
+                    if (call.status === 'waiting') {
+                        hasWaitingCalls = true;
+                        const card = document.createElement('div');
+                        card.className = 'call-card';
+                        card.innerHTML = `
+                            <div>
+                                <p><strong>رقم المتصل:</strong> ${call.clientPhone}</p>
+                                <p><small>وقت الاتصال: ${new Date(call.timestamp).toLocaleTimeString('ar-EG')}</small></p>
+                            </div>
+                            <button class="btn-answer" onclick="answerCall('${callId}')">استقبال المكالمة</button>
+                        `;
+                        queueContainer.appendChild(card);
+                    }
+                });
+                if (!hasWaitingCalls) {
+                    queueContainer.innerHTML = '<p>لا توجد مكالمات في الانتظار حالياً.</p>';
+                }
+            } else {
+                queueContainer.innerHTML = '<p>لا توجد مكالمات في الانتظار حالياً.</p>';
+            }
+        });
+
+        // التعامل مع الضغط على زر استقبال المكالمة
+        window.answerCall = function(callId) {
+            update(ref(db, 'calls_queue/' + callId), {
+                status: 'in_progress',
+                answeredBy: 'agent_1'
+            }).then(() => {
+                alert("تم استلام الطلب وتوجيه الخط. يمكنك التواصل مع العميل أو تحويله.");
+            });
+        }
+    </script>
 </body>
 </html>
