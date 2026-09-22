@@ -3,112 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة خدمة العملاء المباشرة (عبر Telegram)</title>
-    <!-- استخدام Tailwind CSS للتصميم السريع -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>منصة السنترال الافتراضي</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 h-screen flex flex-col">
+<body>
+    <div class="dashboard-container">
+        <!-- الشريط الجانبي للحالة -->
+        <aside class="sidebar">
+            <h2>لوحة الموظف</h2>
+            <div class="agent-status">
+                <label>حالتك الآن:</label>
+                <select id="statusSelect" onchange="updateAgentStatus()">
+                    <option value="online">متصل (جاهز)</option>
+                    <option value="busy">مشغول في مكالمة</option>
+                    <option value="offline">غير متصل</option>
+                </select>
+            </div>
+            <div class="virtual-number">
+                <span>رقم الخدمة:</span>
+                <h3>+20 123 456 7890</h3>
+            </div>
+        </aside>
 
-    <!-- شريط علوي -->
-    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-lg font-bold">نظام الرد المباشر (بدون تخزين)</h1>
-        <span class="text-xs bg-blue-500 px-2 py-1 rounded">متصل عبر بوت تيليجرام</span>
-    </header>
-
-    <!-- محتوى الشاشة -->
-    <div class="flex flex-col flex-1 max-w-3xl w-full mx-auto p-4 bg-white shadow-md my-4 rounded-lg overflow-hidden">
-        
-        <!-- صندوق عرض الرسائل الحية -->
-        <div id="messages-container" class="flex-1 border border-gray-200 rounded-lg p-4 overflow-y-auto bg-gray-50 space-y-3 mb-4">
-            <div class="text-gray-400 text-center text-sm mt-20">جاري جلب الرسائل الواردة من البوت...</div>
-        </div>
-
-        <!-- خانة كتابة الرد وإرساله -->
-        <div class="flex gap-2">
-            <input type="text" id="reply-input" placeholder="اكتب ردك هنا لإرساله للعميل..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
-            <button onclick="sendMessage()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-bold">إرسال</button>
-        </div>
+        <!-- المحتوى الرئيسي للمكالمات والطلبات -->
+        <main class="main-content">
+            <header>
+                <h2>قائمة العملاء المنتظرين</h2>
+            </header>
+            
+            <div class="calls-queue" id="callsQueue">
+                <!-- يتم جلب العملاء هنا ديناميكياً من جافاسكريبت -->
+                <div class="call-card">
+                    <p><strong>اسم العميل:</strong> أحمد محمد</p>
+                    <p><strong>رقم الهاتف:</strong> 01012345678</p>
+                    <button class="btn-answer" onclick="answerCall('1')">استقبال المكالمة</button>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script>
-        // البيانات الخاصة بك
-        const BOT_TOKEN = "8090373434:AAHrDcaMsXYG444KTUnXr1RXTEGvBXW_Fw4";
-        const CHAT_ID = "7594072203";
-        
-        let lastUpdateId = 0; // لتتبع الرسائل الجديدة وعدم تكرارها
-
-        // دالة إرسال الرد من الموقع إلى تيليجرام
-        function sendMessage() {
-            const input = document.getElementById('reply-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: text
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    appendMessage("أنت (الموظف): " + text, "text-blue-600 font-semibold");
-                    input.value = '';
-                } else {
-                    alert("فشل الإرسال!");
-                }
-            })
-            .catch(err => console.error("خطأ:", err));
-        }
-
-        // دالة سحب الرسائل الواردة من تيليجرام لحظياً (بدون قاعدة بيانات)
-        function fetchMessages() {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`;
-
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.ok && data.result.length > 0) {
-                        data.result.forEach(update => {
-                            lastUpdateId = update.update_id;
-                            
-                            // التحقق من وجود رسالة نصية واردة
-                            if (update.message && update.message.text) {
-                                const senderName = update.message.from.first_name || "مستخدم";
-                                const msgText = update.message.text;
-                                
-                                // عرض الرسالة في الواجهة
-                                appendMessage(`${senderName}: ${msgText}`, "text-gray-800 bg-white border border-gray-200 p-2 rounded shadow-sm");
-                            }
-                        });
-                    }
-                })
-                .catch(err => console.error("خطأ في جلب الرسائل:", err));
-        }
-
-        // دالة مساعدة لعرض الرسائل في الصندوق
-        function appendMessage(text, className) {
-            const container = document.getElementById('messages-container');
-            
-            // إزالة رسالة "جاري الجلب" في أول مرة
-            if (container.querySelector('.text-gray-400')) {
-                container.innerHTML = '';
-            }
-
-            const div = document.createElement('div');
-            div.className = `p-2 rounded-lg text-sm max-w-[80%] ${className}`;
-            div.innerText = text;
-            
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight; // النزول لأسفل القائمة تلقائياً
-        }
-
-        // تشغيل عملية الفحص التلقائي للرسائل كل 3 ثوانٍ
-        setInterval(fetchMessages, 3000);
-    </script>
+    <!-- ربط Firebase SDK -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
