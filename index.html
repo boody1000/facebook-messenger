@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة خدمة العملاء - السنترال الافتراضي</title>
+    <title>السنترال الافتراضي - خدمة العملاء</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; }
         body { background-color: #f4f7f6; color: #333; }
@@ -11,7 +11,7 @@
         .sidebar { width: 280px; background: #2c3e50; color: white; padding: 20px; }
         .sidebar h2 { margin-bottom: 20px; font-size: 1.2rem; }
         .agent-status select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: none; }
-        .virtual-number h3 { color: #2ecc71; margin-top: 5px; }
+        .virtual-number h3 { color: #2ecc71; margin-top: 5px; font-size: 1.1rem; }
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .calls-queue { margin-top: 20px; }
         .call-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid #e74c3c; }
@@ -35,7 +35,7 @@
             <br>
             <div class="virtual-number">
                 <span>رقم الخدمة الافتراضي:</span>
-                <h3>+20 (متصل عبر Twilio)</h3>
+                <h3>01200244829</h3>
             </div>
         </aside>
 
@@ -45,25 +45,26 @@
                 <h2>المكالمات الواردة في الانتظار</h2>
             </header>
             <div class="calls-queue" id="callsQueue">
-                <p>جاري تحميل المكالمات...</p>
+                <p>جاري الاستماع للمكالمات الواردة...</p>
             </div>
         </main>
     </div>
 
-    <!-- كود المنطق والربط بـ Firebase -->
+    <!-- كود الربط بـ Firebase وإدارة الواجهة -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
-        // ضع إعدادات مشروعك الحقيقية من لوحة تحكم Firebase هنا
+        // إعدادات مشروعك على Firebase
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyD4iEHiucQPltx4hf_i03sv8NwJPeyisOQ",
+            authDomain: "messeng-54eba.firebaseapp.com",
+            databaseURL: "https://messeng-54eba-default-rtdb.firebaseio.com",
+            projectId: "messeng-54eba",
+            storageBucket: "messeng-54eba.firebasestorage.app",
+            messagingSenderId: "556434854739",
+            appId: "1:556434854739:web:5fc3e479d8c42222d287a6",
+            measurementId: "G-FVH4ZFFM6K"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -72,10 +73,13 @@
         // تحديث حالة الموظف
         window.updateAgentStatus = function() {
             const status = document.getElementById('statusSelect').value;
-            set(ref(db, 'agents/agent_1'), { status: status, lastUpdated: Date.now() });
+            set(ref(db, 'agents/agent_1'), { 
+                status: status, 
+                lastUpdated: Date.now() 
+            });
         }
 
-        // الاستماع للمكالمات الواردة لحظياً
+        // الاستماع لقاعدة البيانات وعرض المكالمات لحظياً
         const queueRef = ref(db, 'calls_queue/');
         onValue(queueRef, (snapshot) => {
             const data = snapshot.val();
@@ -108,13 +112,13 @@
             }
         });
 
-        // التعامل مع الضغط على زر استقبال المكالمة
+        // التعامل مع زر الاستقبال
         window.answerCall = function(callId) {
             update(ref(db, 'calls_queue/' + callId), {
                 status: 'in_progress',
                 answeredBy: 'agent_1'
             }).then(() => {
-                alert("تم استلام الطلب وتوجيه الخط. يمكنك التواصل مع العميل أو تحويله.");
+                alert("تم استلام المكالمة بنجاح!");
             });
         }
     </script>
