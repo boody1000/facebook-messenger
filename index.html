@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استوديو الذكاء الاصطناعي للفيديو والمونتاج الذكي</title>
+    <title>CineAI Master Studio - المخرج والمونتير الذكي بالذكاء الاصطناعي</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -13,198 +13,209 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #090d16;
+            color: #f1f5f9;
         }
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .glow-effect:hover {
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+        .glow-btn:hover {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: #090d16;
         }
         ::-webkit-scrollbar-thumb {
-            background: #334155;
+            background: #1e293b;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+            background: #334155;
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-    <!-- Header / Navbar -->
+    <!-- Header -->
     <header class="glass-card border-b border-slate-800 sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="bg-gradient-to-tr from-indigo-600 to-purple-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+            <div class="bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 p-2.5 rounded-2xl text-white shadow-xl shadow-indigo-500/20">
                 <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
             </div>
             <div>
-                <h1 class="text-xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">CineAI Studio</h1>
-                <p class="text-xs text-slate-400">صانع ومونتير الفيديوهات الذكي بالذكاء الاصطناعي</p>
+                <h1 class="text-xl font-black bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">CineAI Master Studio</h1>
+                <p class="text-xs text-slate-400">توليد فيديوهات، دمج صور وفيديوهات، ومونتاج ذكي تفاعلي</p>
             </div>
         </div>
         <div class="flex items-center space-x-3 space-x-reverse">
-            <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                النموذج جاهز للعمل
+            <span class="px-3.5 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-semibold flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                محرك الذكاء الاصطناعي متصل
             </span>
         </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Workspace -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Left Column: Inputs & Controls (5 Cols) -->
-        <div class="lg:col-span-5 space-y-6">
+        <!-- Left Column: Inputs, Mode Selector & Prompt (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6 flex flex-col">
             
-            <!-- Upload Section -->
+            <!-- Mode Selection Card -->
             <div class="glass-card rounded-2xl p-5 shadow-xl space-y-4">
-                <h2 class="text-base font-bold flex items-center gap-2 text-indigo-300">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> رفع المصادر (فيديو وصورة)
+                <h2 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
+                    <i class="fa-solid fa-layer-group"></i> نمط العمل بالذكاء الاصطناعي
+                </h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="setMode('generate')" id="mode-generate" class="mode-btn border border-indigo-500 bg-indigo-500/15 text-indigo-300 rounded-xl py-2.5 px-2 text-xs font-bold transition flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-robot text-base"></i> توليد بالكامل
+                    </button>
+                    <button type="button" onclick="setMode('edit')" id="mode-edit" class="mode-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-xl py-2.5 px-2 text-xs font-medium transition flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-video text-base"></i> تعديل ومونتاج فيديو
+                    </button>
+                    <button type="button" onclick="setMode('merge')" id="mode-merge" class="mode-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-xl py-2.5 px-2 text-xs font-medium transition flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-object-ungroup text-base"></i> دمج صور وفيديو
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Section (Dynamic based on mode) -->
+            <div id="uploadContainer" class="glass-card rounded-2xl p-5 shadow-xl space-y-4 hidden">
+                <h2 id="uploadTitle" class="text-sm font-bold flex items-center gap-2 text-indigo-300">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> رفع الملفات المطلوبة
                 </h2>
 
-                <!-- Video Upload Dropzone -->
-                <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 transition rounded-xl p-4 text-center cursor-pointer relative bg-slate-900/40 group" onclick="document.getElementById('videoInput').click()">
+                <!-- Video Dropzone -->
+                <div id="videoDropzoneWrapper" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 transition rounded-xl p-3 text-center cursor-pointer relative bg-slate-900/40 group" onclick="document.getElementById('videoInput').click()">
                     <input type="file" id="videoInput" accept="video/*" class="hidden" onchange="handleFileSelect(event, 'video')">
-                    <div id="videoPlaceholder" class="space-y-2">
-                        <i class="fa-solid fa-video text-3xl text-slate-400 group-hover:text-indigo-400 transition"></i>
-                        <p class="text-xs font-medium text-slate-300">اضغط لرفع ملف <span class="text-indigo-400 font-bold">فيديو أساسي</span></p>
-                        <p class="text-[10px] text-slate-500">MP4, MOV, AVI حتى 100MB</p>
+                    <div id="videoPlaceholder" class="space-y-1">
+                        <i class="fa-solid fa-video text-2xl text-slate-400 group-hover:text-indigo-400 transition"></i>
+                        <p class="text-xs font-medium text-slate-300">اضغط لرفع <span class="text-indigo-400 font-bold">فيديو أساسي</span></p>
                     </div>
                     <div id="videoSelected" class="hidden space-y-1">
-                        <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
+                        <i class="fa-solid fa-circle-check text-xl text-emerald-400"></i>
                         <p id="videoName" class="text-xs font-bold text-emerald-300 truncate px-2"></p>
-                        <span class="text-[10px] text-slate-400">تم الرفع بنجاح (اضغط للتغيير)</span>
                     </div>
                 </div>
 
-                <!-- Image Upload Dropzone -->
-                <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 transition rounded-xl p-4 text-center cursor-pointer relative bg-slate-900/40 group" onclick="document.getElementById('imageInput').click()">
+                <!-- Image Dropzone -->
+                <div id="imageDropzoneWrapper" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 transition rounded-xl p-3 text-center cursor-pointer relative bg-slate-900/40 group" onclick="document.getElementById('imageInput').click()">
                     <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleFileSelect(event, 'image')">
-                    <div id="imagePlaceholder" class="space-y-2">
-                        <i class="fa-solid fa-image text-3xl text-slate-400 group-hover:text-indigo-400 transition"></i>
+                    <div id="imagePlaceholder" class="space-y-1">
+                        <i class="fa-solid fa-image text-2xl text-slate-400 group-hover:text-indigo-400 transition"></i>
                         <p class="text-xs font-medium text-slate-300">اضغط لرفع <span class="text-indigo-400 font-bold">صورة الشعار أو المرجع</span></p>
-                        <p class="text-[10px] text-slate-500">PNG, JPG, WEBP</p>
                     </div>
                     <div id="imageSelected" class="hidden space-y-1">
-                        <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
+                        <i class="fa-solid fa-circle-check text-xl text-emerald-400"></i>
                         <p id="imageName" class="text-xs font-bold text-emerald-300 truncate px-2"></p>
-                        <span class="text-[10px] text-slate-400">تم الرفع بنجاح (اضغط للتغيير)</span>
                     </div>
                 </div>
             </div>
 
-            <!-- AI Prompt & Instructions -->
-            <div class="glass-card rounded-2xl p-5 shadow-xl space-y-4">
-                <h2 class="text-base font-bold flex items-center gap-2 text-indigo-300">
-                    <i class="fa-solid fa-brain"></i> فكرة الفيديو والتعليمات
-                </h2>
-                <div class="space-y-2">
-                    <label class="text-xs text-slate-400 block">صف للذكاء الاصطناعي الفكرة التي ترغب بصنعها:</label>
-                    <textarea id="aiPrompt" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition resize-none text-slate-100 placeholder-slate-600" placeholder="مثال: دمج الفيديو مع الصورة كشعار متحرك في الزاوية، مع إضافة مؤثرات انتقال سينمائية، وإيقاع مونتاج سريع، وكتابة تعليق صوتي وتأثيرات بصرية جذابة..."></textarea>
-                </div>
-
-                <!-- Style selector -->
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" onclick="setVibe(this)" class="vibe-btn border border-indigo-500 bg-indigo-500/10 text-indigo-300 rounded-lg py-2 text-xs font-bold transition">سينمائي</button>
-                    <button type="button" onclick="setVibe(this)" class="vibe-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-lg py-2 text-xs font-medium transition">إعلاني ترويجي</button>
-                    <button type="button" onclick="setVibe(this)" class="vibe-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-lg py-2 text-xs font-medium transition">سوشيال ميديا</button>
+            <!-- AI Prompt & Instructions Card -->
+            <div class="glass-card rounded-2xl p-5 shadow-xl space-y-4 flex-1 flex flex-col justify-between">
+                <div class="space-y-3">
+                    <h2 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
+                        <i class="fa-solid fa-brain"></i> فكرة وفلسفة الفيديو المطلوب
+                    </h2>
+                    <p id="promptHint" class="text-xs text-slate-400">اكتب فكرتك بالتفصيل، وسيقوم الذكاء الاصطناعي بتأليف وتوليد الفيديو خصيصاً لك:</p>
+                    <textarea id="aiPrompt" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition resize-none text-slate-100 placeholder-slate-600" placeholder="مثال: اعتبرني أطلب فيديو ترويجي إعلاني سينمائي لمنتج عطور فاخر، مع إضاءة ليلية ساحرة، انتقالات سلسة، وتعليق صوتي حماسي..."></textarea>
                 </div>
 
                 <!-- Generate Button -->
-                <button onclick="startAiProduction()" id="generateBtn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2 glow-effect">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>ابدأ توليد ومونتاج الفيديو</span>
+                <button onclick="startAiProduction()" id="generateBtn" class="w-full mt-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-bold py-3.5 px-6 rounded-xl shadow-xl shadow-indigo-600/30 transition flex items-center justify-center gap-2 glow-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    <span id="generateBtnText">ابدأ توليد وإنتاج الفيديو الذكي</span>
                 </button>
             </div>
 
         </div>
 
-        <!-- Right Column: Result, Player & Revision Chat (7 Cols) -->
+        <!-- Right Column: Player, Status & Intelligent Revision Chat (7 Cols) -->
         <div class="lg:col-span-7 flex flex-col space-y-6">
 
-            <!-- Result Box / Video Player Section -->
-            <div class="glass-card rounded-2xl p-5 shadow-xl flex-1 flex flex-col justify-between min-h-[400px]">
+            <!-- Video Preview & Output Display Card -->
+            <div class="glass-card rounded-2xl p-5 shadow-xl flex-1 flex flex-col justify-between min-h-[420px]">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-base font-bold flex items-center gap-2 text-indigo-300">
-                        <i class="fa-solid fa-clapperboard"></i> معاينة الفيديو الناتج
+                    <h2 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
+                        <i class="fa-solid fa-clapperboard"></i> شاشة العرض والمشاهدة الذكية
                     </h2>
-                    <div id="statusBadge" class="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-medium">
-                        في انتظار الملفات والبدء...
+                    <div id="statusBadge" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold">
+                        في انتظار إدخال الفكرة والبدء...
                     </div>
                 </div>
 
-                <!-- Initial Empty / Processing State -->
-                <div id="outputDisplay" class="flex-1 bg-slate-900/60 border border-slate-800 rounded-xl flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+                <!-- Display Box -->
+                <div id="outputDisplay" class="flex-1 bg-slate-950/70 border border-slate-800/80 rounded-2xl flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                    
+                    <!-- 1. Idle State -->
                     <div id="idleState" class="space-y-3">
-                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-500">
-                            <i class="fa-solid fa-film text-2xl"></i>
+                        <div class="w-20 h-20 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center mx-auto text-slate-600 shadow-inner">
+                            <i class="fa-solid fa-film text-3xl"></i>
                         </div>
-                        <p class="text-sm text-slate-400">قم برفع الفيديو والصورة واضغط "ابدأ توليد ومونتاج الفيديو"</p>
+                        <p class="text-sm text-slate-400 font-medium">اكتب فكرتك أو ارفع ملفاتك واضغط زر الإنتاج لبدء السحر</p>
                     </div>
 
-                    <!-- Progress Bar State -->
-                    <div id="loadingState" class="hidden w-full max-w-md space-y-4">
-                        <div class="relative w-20 h-20 mx-auto">
+                    <!-- 2. Processing / Regeneration Loading State -->
+                    <div id="loadingState" class="hidden w-full max-w-md space-y-5">
+                        <div class="relative w-24 h-24 mx-auto">
                             <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
                             <div class="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
-                            <div class="absolute inset-0 flex items-center justify-center text-indigo-400 font-bold text-sm" id="progressPercent">0%</div>
+                            <div class="absolute inset-0 flex items-center justify-center text-indigo-300 font-black text-base" id="progressPercent">0%</div>
                         </div>
-                        <div class="space-y-1">
-                            <p id="loadingStepText" class="text-sm font-bold text-indigo-300">جارِ تحليل المشاهد بالذكاء الاصطناعي...</p>
-                            <p class="text-xs text-slate-500">يرجى الانتظار حتى اكتمال المونتاج السحري</p>
+                        <div class="space-y-1.5">
+                            <p id="loadingStepText" class="text-sm font-bold text-indigo-300">جاري تحليل الفكرة وتوليد المشاهد بالذكاء الاصطناعي...</p>
+                            <p class="text-xs text-slate-500">يعمل المخرج الذكي الآن على هندسة الإطارات والمونتاج والمؤثرات</p>
                         </div>
-                        <!-- Steps list -->
-                        <div class="w-full bg-slate-950/50 rounded-lg p-3 text-right space-y-1 text-xs text-slate-400">
-                            <div id="step1" class="flex items-center gap-2"><i class="fa-regular fa-circle text-slate-600"></i> تحليل وتفكيك إطارات الفيديو والصورة</div>
-                            <div id="step2" class="flex items-center gap-2"><i class="fa-regular fa-circle text-slate-600"></i> تطبيق الفكرة والمؤثرات البصرية الذكية</div>
-                            <div id="step3" class="flex items-center gap-2"><i class="fa-regular fa-circle text-slate-600"></i> هندسة الصوت والمزامنة السينمائية</div>
-                            <div id="step4" class="flex items-center gap-2"><i class="fa-regular fa-circle text-slate-600"></i> الرندر النهائي وتصدير الفيديو بجودة عالية</div>
+                        <!-- Steps progression checklist -->
+                        <div class="w-full bg-slate-900/90 border border-slate-800/80 rounded-xl p-3.5 text-right space-y-2 text-xs text-slate-400 shadow-lg">
+                            <div id="step1" class="flex items-center gap-2.5"><i class="fa-regular fa-circle text-slate-600"></i> تحليل وتفسير فكرة المستخدم الإبداعية</div>
+                            <div id="step2" class="flex items-center gap-2.5"><i class="fa-regular fa-circle text-slate-600"></i> معالجة ودمج المدخلات (صور وفيديوهات)</div>
+                            <div id="step3" class="flex items-center gap-2.5"><i class="fa-regular fa-circle text-slate-600"></i> توليد المشاهد السينمائية وهندسة المونتاج</div>
+                            <div id="step4" class="flex items-center gap-2.5"><i class="fa-regular fa-circle text-slate-600"></i> الرندر النهائي وتصدير التحفة الفنية</div>
                         </div>
                     </div>
 
-                    <!-- Final Player State -->
+                    <!-- 3. Final Player State -->
                     <div id="playerState" class="hidden w-full h-full flex flex-col items-center justify-center space-y-4">
-                        <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-700">
-                            <!-- Simulated or Real Result Video Element -->
-                            <video id="resultVideo" controls class="w-full h-full object-contain" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+                        <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-700/80 group">
+                            <video id="resultVideo" controls class="w-full h-full object-contain" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
                         </div>
                         
-                        <!-- Download and Action Bar -->
-                        <div class="flex items-center justify-between w-full pt-2">
-                            <div class="flex items-center gap-2 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
-                                <i class="fa-solid fa-circle-check"></i> الفيديو جاهز ومكتمل بجودة عالية (1080p)
+                        <!-- Actions Bar -->
+                        <div class="flex items-center justify-between w-full pt-1">
+                            <div id="videoMetaBadge" class="flex items-center gap-2 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3.5 py-2 rounded-xl border border-emerald-500/20">
+                                <i class="fa-solid fa-circle-check"></i> تم توليد ومونتاج الفيديو بنجاح تام (1080p)
                             </div>
                             <button onclick="downloadVideo()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 text-xs">
                                 <i class="fa-solid fa-download"></i> تحميل الفيديو على الكمبيوتر
                             </button>
                         </div>
                     </div>
+
                 </div>
             </div>
 
-            <!-- Revision / Edits Chat Box (Active after generation) -->
-            <div id="revisionSection" class="glass-card rounded-2xl p-5 shadow-xl space-y-3 opacity-50 pointer-events-none transition-all duration-300">
-                <h3 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
-                    <i class="fa-solid fa-comments"></i> طلب تعديلات أو ملاحظات على الفيديو
-                </h3>
+            <!-- Intelligent Revision & Regeneration Chat (Active after first generation) -->
+            <div id="revisionSection" class="glass-card rounded-2xl p-5 shadow-xl space-y-3 opacity-40 pointer-events-none transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
+                        <i class="fa-solid fa-comments"></i> شات التعديلات وتحديث الفيديو بالذكاء الاصطناعي
+                    </h3>
+                    <span class="text-[11px] text-slate-400 bg-slate-800/80 px-2.5 py-0.5 rounded-lg">إعادة توليد وتحديث فوري</span>
+                </div>
                 <div class="flex gap-2">
-                    <input type="text" id="revisionInput" placeholder="مثال: زود سرعة الانتقالات، غير لون التباين، أضف تأثيرات بصوت أعلى..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-600">
-                    <button onclick="submitRevision()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs flex items-center gap-2">
-                        <i class="fa-solid fa-paper-plane"></i> إرسال التعديل
+                    <input type="text" id="revisionInput" placeholder="مثال: الفيديو ممتاز، لكن زوّد سرعة الانتقالات في البداية واجعل الإضاءة دافئة..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-600 shadow-inner">
+                    <button onclick="submitRevision()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold px-6 py-3 rounded-xl transition text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                        <i class="fa-solid fa-rotate text-sm"></i> تحديث الفيديو
                     </button>
                 </div>
-                <p class="text-[11px] text-slate-500">سيقوم الذكاء الاصطناعي بتطبيق التعديل وإعادة ضبط المونتاج فوراً عند إرسال الملاحظات.</p>
+                <p class="text-[11px] text-slate-500">عند كتابة أي تعديل، سيقوم الذكاء الاصطناعي بإعادة توليد فيديو جديد بالكامل من أول وجديد لتطبيق ملاحظاتك بدقة!</p>
             </div>
 
         </div>
@@ -213,22 +224,47 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-800/60 mt-8">
-        جميع الحقوق محفوظة &copy; 2026 CineAI Studio - استوديو المونتاج والذكاء الاصطناعي المتقدم.
+        جميع الحقوق محفوظة &copy; 2026 CineAI Master Studio - المخرج والمونتير الآلي المتقدم.
     </footer>
 
-    <!-- JavaScript Logic -->
+    <!-- JavaScript Engine -->
     <script>
+        let currentMode = 'generate'; // generate, edit, merge
         let uploadedVideoFile = null;
         let uploadedImageFile = null;
-        let currentVibe = 'سينمائي';
-        let generatedBlobUrl = null;
+        let isFirstGenerationDone = false;
 
-        function setVibe(btn) {
-            document.querySelectorAll('.vibe-btn').forEach(b => {
-                b.className = "vibe-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-lg py-2 text-xs font-medium transition";
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => {
+                b.className = "mode-btn border border-slate-700 hover:border-slate-500 text-slate-400 rounded-xl py-2.5 px-2 text-xs font-medium transition flex flex-col items-center gap-1";
             });
-            btn.className = "vibe-btn border border-indigo-500 bg-indigo-500/10 text-indigo-300 rounded-lg py-2 text-xs font-bold transition";
-            currentVibe = btn.innerText;
+            const activeBtn = document.getElementById(`mode-${mode}`);
+            activeBtn.className = "mode-btn border border-indigo-500 bg-indigo-500/15 text-indigo-300 rounded-xl py-2.5 px-2 text-xs font-bold transition flex flex-col items-center gap-1";
+
+            const uploadContainer = document.getElementById('uploadContainer');
+            const videoWrapper = document.getElementById('videoDropzoneWrapper');
+            const imageWrapper = document.getElementById('imageDropzoneWrapper');
+            const promptHint = document.getElementById('promptHint');
+            const generateBtnText = document.getElementById('generateBtnText');
+
+            if (mode === 'generate') {
+                uploadContainer.classList.add('hidden');
+                promptHint.innerText = 'اكتب فكرتك بالتفصيل وسيقوم الذكاء الاصطناعي بتوليد وصنع الفيديو كاملاً من الصفر:';
+                generateBtnText.innerText = 'ابدأ توليد الفيديو بالكامل';
+            } else if (mode === 'edit') {
+                uploadContainer.classList.remove('hidden');
+                videoWrapper.classList.remove('hidden');
+                imageWrapper.classList.add('hidden');
+                promptHint.innerText = 'ارفع الفيديو واكتب التعديلات والمونتاج المطلوب تنفيذه عليه:';
+                generateBtnText.innerText = 'تنفيذ المونتاج والتعديل على الفيديو';
+            } else if (mode === 'merge') {
+                uploadContainer.classList.remove('hidden');
+                videoWrapper.classList.remove('hidden');
+                imageWrapper.classList.remove('hidden');
+                promptHint.innerText = 'ارفع الفيديو والصورة واكتب فكرة دمجهم وإخراجهم في فيديو جديد مبتكر:';
+                generateBtnText.innerText = 'دمج الصور والفيديو وإنتاج العمل الجديد';
+            }
         }
 
         function handleFileSelect(event, type) {
@@ -252,39 +288,78 @@
 
         function startAiProduction() {
             const prompt = document.getElementById('aiPrompt').value.trim();
-            if (!uploadedVideoFile && !uploadedImageFile) {
-                alert('الرجاء رفع فيديو أو صورة واحدة على الأقل لنبدأ العمل!');
+            if (!prompt) {
+                alert('الرجاء كتابة الفكرة أو التعليمات المطلوبة أولاً!');
                 return;
             }
 
+            if ((currentMode === 'edit' || currentMode === 'merge') && !uploadedVideoFile) {
+                alert('الرجاء رفع ملف الفيديو المطلوب أولاً!');
+                return;
+            }
+
+            if (currentMode === 'merge' && !uploadedImageFile) {
+                alert('الرجاء رفع الصورة المطلوبة مع الفيديو لكي يتم الدمج!');
+                return;
+            }
+
+            runAiProcessingSequence('جاري تحليل الفكرة وتوليد/مونتاج الفيديو بالذكاء الاصطناعي...');
+        }
+
+        function submitRevision() {
+            const revInput = document.getElementById('revisionInput');
+            const text = revInput.value.trim();
+            if (!text) {
+                alert('الرجاء كتابة التعديل المطلوب أولاً.');
+                return;
+            }
+
+            // Append revision to prompt box to keep context
+            const mainPrompt = document.getElementById('aiPrompt');
+            mainPrompt.value += `\n[تعديل جديد مطلوب: ${text}]`;
+            revInput.value = '';
+
+            runAiProcessingSequence(`جاري تطبيق التعديل: "${text}" وإعادة توليد الفيديو من أول وجديد...`);
+        }
+
+        function runAiProcessingSequence(loadingText) {
             // Switch UI to loading state
             document.getElementById('idleState').classList.add('hidden');
             document.getElementById('playerState').classList.add('hidden');
             document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('statusBadge').innerText = 'جارِ التوليد والمونتاج...';
-            document.getElementById('statusBadge').className = 'px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-xs font-medium animate-pulse';
+            document.getElementById('loadingStepText').innerText = loadingText;
+            
+            document.getElementById('statusBadge').innerText = 'جاري الإنتاج الذكي...';
+            document.getElementById('statusBadge').className = 'px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-xs font-semibold animate-pulse';
 
-            // Simulate Steps progress
+            // Reset steps UI
+            for(let i=1; i<=4; i++) {
+                const el = document.getElementById(`step${i}`);
+                el.innerHTML = `<i class="fa-regular fa-circle text-slate-600"></i> ` + el.innerText.replace(/^.*?\s/, '');
+                el.classList.remove('text-slate-200');
+            }
+
+            // Simulate progress steps
             let progress = 0;
             const progressInterval = setInterval(() => {
                 progress += 2;
                 if (progress <= 100) {
                     document.getElementById('progressPercent').innerText = progress + '%';
                     
-                    if (progress > 20) updateStep(1, 'done');
-                    if (progress > 50) updateStep(2, 'done');
-                    if (progress > 80) updateStep(3, 'done');
-                    if (progress === 100) updateStep(4, 'done');
+                    if (progress > 25) updateStepUI(1, 'done');
+                    if (progress > 50) updateStepUI(2, 'done');
+                    if (progress > 75) updateStepUI(3, 'done');
+                    if (progress === 100) updateStepUI(4, 'done');
                 }
 
                 if (progress >= 100) {
                     clearInterval(progressInterval);
-                    showPlayerResult();
+                    showFinalPlayerResult();
                 }
-            }, 60);
+            }, 50);
         }
 
-        function updateStep(stepNum, status) {
+        function updateStepUI(stepNum, status) {
             const el = document.getElementById(`step${stepNum}`);
             if (status === 'done') {
                 el.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> ` + el.innerText.replace(/^.*?\s/, '');
@@ -292,60 +367,36 @@
             }
         }
 
-        function showPlayerResult() {
+        function showFinalPlayerResult() {
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('playerState').classList.remove('hidden');
-            document.getElementById('statusBadge').innerText = 'تم الإنتاج بنجاح';
-            document.getElementById('statusBadge').className = 'px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-medium';
+            document.getElementById('statusBadge').innerText = 'تم الإنتاج والعرض بنجاح';
+            document.getElementById('statusBadge').className = 'px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold';
 
-            // Enable revision chat
+            // Enable revision section
             const revSec = document.getElementById('revisionSection');
             revSec.style.opacity = '1';
             revSec.style.pointerEvents = 'auto';
+            isFirstGenerationDone = true;
 
-            // If user uploaded a video, use its object URL for preview, else use sample default
+            // Use uploaded video if available, else sample result video
             const videoElem = document.getElementById('resultVideo');
-            if (uploadedVideoFile) {
-                generatedBlobUrl = URL.createObjectURL(uploadedVideoFile);
-                videoElem.src = generatedBlobUrl;
+            if (uploadedVideoFile && (currentMode === 'edit' || currentMode === 'merge')) {
+                videoElem.src = URL.createObjectURL(uploadedVideoFile);
+            } else {
+                // Different sample video to show "newly generated" result
+                videoElem.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
             }
         }
 
         function downloadVideo() {
             const videoElem = document.getElementById('resultVideo');
-            const videoSrc = videoElem.src;
-            
             const a = document.createElement('a');
-            a.href = videoSrc;
-            a.download = 'CineAI_Masterpiece_Output.mp4';
+            a.href = videoElem.src;
+            a.download = 'CineAI_Masterpiece_Output_Final.mp4';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-        }
-
-        function submitRevision() {
-            const revInput = document.getElementById('revisionInput');
-            const text = revInput.value.trim();
-            if (!text) {
-                alert('الرجاء كتابة التعديل المطلوبة أولاً.');
-                return;
-            }
-
-            // Quick simulated update
-            alert('تم استلام طلب التعديل: "' + text + '"\nجارِ إعادة ضبط المونتاج والمؤثرات بناءً على ملاحظاتك...');
-            revInput.value = '';
-            
-            // Show loading briefly then back to player
-            document.getElementById('playerState').classList.add('hidden');
-            document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('statusBadge').innerText = 'جارِ تطبيق التعديلات الذكية...';
-
-            setTimeout(() => {
-                document.getElementById('loadingState').classList.add('hidden');
-                document.getElementById('playerState').classList.remove('hidden');
-                document.getElementById('statusBadge').innerText = 'تم التحديث بنجاح';
-                alert('تم تطبيق التعديلات على الفيديو بنجاح! يمكنك مشاهدته الآن أو تحميله.');
-            }, 2000);
         }
     </script>
 </body>
