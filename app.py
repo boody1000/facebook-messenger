@@ -1,64 +1,80 @@
+import streamlit as st
 import torch
-from flask import Flask, jsonify, render_template, request
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-app = Flask(__name__)
+# إعداد الصفحة
+st.set_page_config(page_title="مساعدك الذكي المحلي", page_icon="🤖", layout="centered")
 
-# تحميل النموذج والـ Tokenizer محلياً
-MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
-print("⏳ جاري تحميل النموذج...")
+st.title("🤖 شات بوت ذكي محلي (Hugging Face)")
+st.write("هذا التطبيق يعمل محلياً بالكامل باستخدام نماذج Hugging Face دون أي اعتماد على APIs خارجية.")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME, torch_dtype=torch.float16, device_map="auto"
-)
+# اختيار النموذج وتحميله مرة واحدة وتخزينه مؤقتاً في الذاكرة لتسريع الأداء
+@st.cache_resource
+def load_model():
+    model_name = "Qwen/Qwen2.5-1.5B-Instruct"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, 
+        torch_dtype=torch.float16, 
+        device_map="auto"
+    )
+    return tokenizer, model
 
-print("✅ النموذج جاهز للعمل!")
+with st.spinner("⏳ جاري تحميل النموذج والذكاء الاصطناعي محلياً، يرجى الانتظار..."):
+    tokenizer, model = load_model()
 
+st.success("✅ النموذج جاهز للعمل!")
 
-@app.route("/")
-def home():
-  return render_template("index.html")
+# تهيئة الذاكرة لحفظ رسائل الشات
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "system", "content": "أنت مساعد ذكي ومفيد."}
+    ]
 
+# عرض رسائل الشات السابقة (باستثناء رسالة الـ system)
+for message in st.session_state.messages:
+    if message["role"] != "system":
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-@app.route("/chat", methods=["POST"])
-def chat():
-  data = request.json
-  user_message = data.get("message", "")
-  history = data.get("history", [])
+# استقبال رسالة المستخدم الجديدة
+if user_input := st.chat_input("اكتب رسالتك هنا..."):
+    # عرض رسالة المستخدم في الواجهة
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-  if not user_message.strip():
-    return jsonify({"response": "الرجاء إدخال رسالة صحيحة."})
+    # توليد الرد من النموذج المحلي
+    with st.chat_message("assistant"):
+        with st.spinner("جاري التفكير والتوليد..."):
+            try:
+                # تطبيق قالب المحادثة الخاص بالنموذج
+                text = tokenizer.apply_chat_template(
+                    st.session_state.messages,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+                
+                model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
 
-  # تجهيز المحادثة بالقالب المناسب
-  chat_history = [{"role": "system", "content": "أنت مساعد ذكي ومفيد."}]
-  for h in history:
-    chat_history.append({"role": h["role"], "content": h["content"]})
-
-  chat_history.append({"role": "user", "content": user_message})
-
-  text = tokenizer.apply_chat_template(
-      chat_history, tokenize=False, add_generation_prompt=True
-  )
-
-  model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
-
-  generated_ids = model.generate(
-      **model_inputs, max_new_tokens=512, temperature=0.7, top_p=0.9
-  )
-
-  generated_ids = [
-      output_ids[len(input_ids) :]
-      for input_ids, output_ids in zip(
-          model_inputs.input_ids, generated_ids
-      )
-  ]
-  response = tokenizer.batch_decode(
-      generated_ids, skip_special_tokens=True
-  )[0]
-
-  return jsonify({"response": response})
-
-
-if __name__ == "__main__":
-  app.run(host="0.0.0.0", port=5000, debug=False)
+                # توليد الرد
+                generated_ids = model.generate(
+                    **model_inputs,
+                    max_new_tokens=512,
+                    temperature=0.7,
+                    top_p=0.9
+                )
+                
+                generated_ids = [
+                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                ]
+                
+                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                
+                st.markdown(response)
+                
+                # حفظ رد المساعد في الذاكرة
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                
+            except Exception as e:
+                st.error(f"حدث خطأ أثناء توليد الرد: {e}")
