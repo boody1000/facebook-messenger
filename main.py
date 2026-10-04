@@ -1,8 +1,18 @@
 """
-bark-tts-server - FastAPI service for Bark TTS
+bark-tts-server - FastAPI service for Bark TTS (CPU ONLY)
 Run: uvicorn main:app --host 0.0.0.0 --port 8000
 """
 import os
+
+# ============ فرض وضع CPU قبل أي import لـ torch ============
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"        # إخفاء أي GPU
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "0"  # تعطيل MPS (Mac GPU)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# إعدادات Bark لتسريع CPU
+os.environ.setdefault("SUNO_USE_SMALL_MODELS", "True")   # موديلات أصغر = أسرع
+os.environ.setdefault("SUNO_OFFLOAD_CPU", "False")
+
 import io
 import time
 import logging
@@ -10,9 +20,9 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from scipy.io.wavfile import write as write_wav
 import numpy as np
@@ -24,18 +34,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger("bark-tts")
 
-# تحميل متغيرات البيئة
 from dotenv import load_dotenv
 load_dotenv()
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
-MAX_TEXT_LENGTH = int(os.getenv("MAX_TEXT_LENGTH", "500"))
+MAX_TEXT_LENGTH = int(os.getenv("MAX_TEXT_LENGTH", "300"))  # أقل من قبل لأن CPU بطيء
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-USE_SMALL_MODELS = os.getenv("USE_SMALL_MODELS", "false").lower() == "true"
+USE_SMALL_MODELS = os.getenv("SUNO_USE_SMALL_MODELS", "True").lower() == "true"
+CPU_THREADS = int(os.getenv("CPU_THREADS", str(os.cpu_count() or 4)))
 
-# ===================== تحميل Bark (مرة واحدة عند بدء التشغيل) =====================
-logger.info("⏳ جاري تحميل نماذج Bark... (قد يستغرق دقيقة أو أكثر)")
+# ===================== ضبط torch على CPU =====================
+import torch
+torch.set_num_threads(CPU_THREADS)
+torch.set_num_interop_threads(max(1, CPU_THREADS // 2))
+
+logger.info(f"🖥️  وضع CPU مُفعّل - {CPU_THREADS} threads")
+logger.info(f"🚫 CUDA متاح؟ {torch.cuda.is_available()} (المتوقع: False)")
+
+# ===================== تحميل Bark =====================
+logger.info("⏳ جاري تحميل نماذج Bark على CPU... (قد يستغرق 3-10 دقائق)")
 t0 = time.time()
 
 try:
@@ -45,17 +63,18 @@ try:
         coarse_use_small=USE_SMALL_MODELS,
         fine_use_small=USE_SMALL_MODELS,
     )
-    logger.info(f"✅ تم تحميل النماذج بنجاح خلال {time.time() - t0:.1f} ثانية")
+    logger.info(f"✅ تم تحميل النماذج خلال {time.time() - t0:.1f} ثانية")
+    logger.info(f"📦 استخدام موديلات صغيرة: {USE_SMALL_MODELS}")
     BARK_READY = True
 except Exception as e:
     logger.error(f"❌ فشل تحميل Bark: {e}")
     BARK_READY = False
 
-# ===================== FastAPI App =====================
+# ===================== FastAPI =====================
 app = FastAPI(
-    title="Bark TTS Server",
-    description="خدمة تحويل النص إلى كلام باستخدام Bark",
-    version="1.0.0",
+    title="Bark TTS Server (CPU)",
+    description="خدمة تحويل النص إلى كلام باستخدام Bark - تعمل على CPU بدون GPU",
+    version="1.1.0",
 )
 
 app.add_middleware(
@@ -66,34 +85,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ThreadPool لأن Bark ثقيل ولا يعمل بشكل async
+# thread واحد فقط لأن Bark ثقيل على CPU
 executor = ThreadPoolExecutor(max_workers=1)
 
 # ===================== Models =====================
 class TTSRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=MAX_TEXT_LENGTH,
-                      description="النص المراد تحويله إلى كلام")
-    voice_preset: Optional[str] = Field(
-        default="v2/en_speaker_6",
-        description="الصوت المستخدم (مثال: v2/en_speaker_0 حتى v2/en_speaker_9)"
-    )
-    history_prompt: Optional[str] = Field(default=None, description="موجه صوتي مخصص")
-
-
-class TTSResponse(BaseModel):
-    success: bool
-    message: str
-    duration_seconds: Optional[float] = None
-    sample_rate: Optional[int] = None
+    text: str = Field(..., min_length=1, max_length=MAX_TEXT_LENGTH)
+    voice_preset: Optional[str] = Field(default="v2/en_speaker_6")
 
 
 # ===================== Endpoints =====================
 @app.get("/")
 async def root():
     return {
-        "service": "Bark TTS",
+        "service": "Bark TTS (CPU only)",
         "status": "ready" if BARK_READY else "loading",
         "sample_rate": SAMPLE_RATE if BARK_READY else None,
+        "device": "cpu",
+        "threads": CPU_THREADS,
+        "small_models": USE_SMALL_MODELS,
     }
 
 
@@ -101,17 +111,19 @@ async def root():
 async def health():
     if not BARK_READY:
         raise HTTPException(status_code=503, detail="Bark لم يتم تحميله بعد")
-    return {"status": "ok", "sample_rate": SAMPLE_RATE}
+    return {
+        "status": "ok",
+        "sample_rate": SAMPLE_RATE,
+        "device": "cpu",
+        "cuda_available": torch.cuda.is_available(),
+    }
 
 
-def _generate_wav_bytes(text: str, voice_preset: str, history_prompt: Optional[str]) -> bytes:
+def _generate_wav_bytes(text: str, voice_preset: str) -> bytes:
     """توليد الصوت في thread منفصل (Bark ليس async)"""
-    history = history_prompt if history_prompt else voice_preset
-    audio_array = generate_audio(text, history_prompt=history)
+    audio_array = generate_audio(text, history_prompt=voice_preset)
 
-    # تحويل إلى WAV في الذاكرة
     buffer = io.BytesIO()
-    # Bark يرجع float32 في النطاق [-1, 1]، نحوله إلى int16
     if audio_array.dtype != np.int16:
         audio_int16 = (audio_array * 32767).astype(np.int16)
     else:
@@ -123,25 +135,24 @@ def _generate_wav_bytes(text: str, voice_preset: str, history_prompt: Optional[s
 
 @app.post("/synthesize", response_class=StreamingResponse)
 async def synthesize(req: TTSRequest):
-    """تحويل نص إلى ملف WAV"""
     if not BARK_READY:
-        raise HTTPException(status_code=503, detail="Bark لم يتم تحميله بعد، حاول بعد قليل")
+        raise HTTPException(status_code=503, detail="Bark لم يتم تحميله بعد")
 
     text = req.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="النص فارغ")
 
-    logger.info(f"🎙️ طلب جديد: {len(text)} حرف - preset: {req.voice_preset}")
+    logger.info(f"🎙️ طلب جديد: {len(text)} حرف | preset: {req.voice_preset}")
     t0 = time.time()
 
     try:
         loop = asyncio.get_event_loop()
         wav_bytes = await loop.run_in_executor(
-            executor, _generate_wav_bytes, text, req.voice_preset, req.history_prompt
+            executor, _generate_wav_bytes, text, req.voice_preset
         )
     except Exception as e:
         logger.exception("فشل توليد الصوت")
-        raise HTTPException(status_code=500, detail=f"فشل توليد الصوت: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"فشل التوليد: {str(e)}")
 
     duration = time.time() - t0
     logger.info(f"✅ تم التوليد في {duration:.2f} ثانية")
@@ -157,20 +168,11 @@ async def synthesize(req: TTSRequest):
     )
 
 
-@app.post("/synthesize/json", response_model=TTSResponse)
-async def synthesize_json(req: TTSRequest, background_tasks: BackgroundTasks):
-    """نسخة JSON ترجع فقط معلومات، مفيدة للاختبار"""
-    if not BARK_READY:
-        raise HTTPException(status_code=503, detail="Bark لم يتم تحميله بعد")
-    return TTSResponse(success=True, message="استخدم /synthesize للحصول على الملف الصوتي")
-
-
 @app.get("/voices")
 async def list_voices():
-    """قائمة الأصوات المتاحة لـ Bark"""
     return {
         "voices": [f"v2/en_speaker_{i}" for i in range(10)],
-        "note": "Bark يدعم حالياً الإنجليزية بشكل أساسي"
+        "note": "Bark يدعم الإنجليزية فقط حالياً"
     }
 
 
@@ -178,8 +180,7 @@ async def list_voices():
 @app.on_event("startup")
 async def on_startup():
     logger.info(f"🚀 الخادم يعمل على http://{HOST}:{PORT}")
-    if not BARK_READY:
-        logger.warning("⚠️ Bark لم يتم تحميله، الخدمة سترجع 503")
+    logger.info(f"💻 الوضع: CPU فقط (عدد الأنوية: {CPU_THREADS})")
 
 
 @app.on_event("shutdown")
