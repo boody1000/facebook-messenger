@@ -2,8 +2,24 @@
 --extra-index-url https://pypi.org/simple
 
 # PyTorch نسخة CPU فقط (بدون CUDA)
-torch==2.2.2
-torchaudio==2.2.2
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
+# PyTorch نسخة CPU فقط (بدون CUDA)
+torch==2.5.0+cpu
+torchaudio==2.5.0+cpu
+
+# Bark والمكتبات الأخرى
+bark==0.1.5
+scipy==1.14.1
+numpy==1.26.4
+
+# FastAPI
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-multipart==0.0.12
+python-dotenv==1.0.1
+pydantic==2.9.2
 
 # Bark والمكتبات الأخرى
 bark==0.1.5
