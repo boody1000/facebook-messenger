@@ -7,7 +7,6 @@
 
 # PyTorch نسخة CPU فقط (بدون CUDA)
 torch==2.5.0
-torchaudio==2.5.0
 
 # Bark والمكتبات الأخرى
 bark==0.1.5
