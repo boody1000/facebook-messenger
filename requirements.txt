@@ -6,8 +6,8 @@
 --extra-index-url https://pypi.org/simple
 
 # PyTorch نسخة CPU فقط (بدون CUDA)
-torch==2.5.0+cpu
-torchaudio==2.5.0+cpu
+torch==2.5.0
+torchaudio==2.5.0
 
 # Bark والمكتبات الأخرى
 bark==0.1.5
